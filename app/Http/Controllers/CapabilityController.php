@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Resources\CapabilityResource;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Schema;
+
+final class CapabilityController extends Controller
+{
+    /**
+     * Handle the incoming request.
+     */
+    public function __invoke(Request $request): JsonResource
+    {
+        return new CapabilityResource([]);
+    }
+
+    public function verify(): JsonResponse
+    {
+        $checks = [
+            'contract_installed' => is_file(base_path('vendor/yutoseta/magic-html-contracts/openapi/tier1.json')),
+            'database' => Schema::hasTable('cms_resources') && Schema::hasTable('snapshots') && Schema::hasTable('media_assets'),
+            'media_disk' => (string) config('cms.media_disk'),
+        ];
+        $ready = ! in_array(false, $checks, true);
+
+        return response()->json([
+            'service' => 'magic-html-cms-service',
+            'tier' => 1,
+            'status' => $ready ? 'ok' : 'degraded',
+            'contract_version' => '1.0',
+            'checks' => $checks,
+        ], $ready ? 200 : 503);
+    }
+}

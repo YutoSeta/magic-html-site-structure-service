@@ -1,0 +1,26 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+      - name: Configure private Composer access
+        run: |
+          composer config --global --auth github-oauth.github.com "$COMPOSER_GITHUB_TOKEN"
+          git config --global url."https://x-access-token:${COMPOSER_GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+        env:
+          COMPOSER_GITHUB_TOKEN: ${{ secrets.COMPOSER_GITHUB_TOKEN }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php artisan test --compact
+      - run: composer audit
