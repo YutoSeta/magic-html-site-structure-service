@@ -24,6 +24,7 @@ final class CapabilityResource extends JsonResource
                 'PUT /api/v1/sites/{site}/{type}/{resource}',
                 'POST /api/v1/sites/{site}/snapshots',
                 'GET /api/v1/sites/{site}/snapshots/{version}',
+                'GET /api/v1/sites/{site}/published/{type}/{resource}',
                 'POST /api/v1/sites/{site}/media',
             ],
         ];

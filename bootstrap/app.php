@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AllowPublicOrigin;
 use App\Http\Middleware\AuthenticateService;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['service' => AuthenticateService::class]);
+        $middleware->alias([
+            'public.origin' => AllowPublicOrigin::class,
+            'service' => AuthenticateService::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

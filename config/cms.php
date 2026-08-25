@@ -5,4 +5,5 @@ return [
     'media_disk' => env('CMS_MEDIA_DISK', env('FILESYSTEM_DISK', 's3')),
     'writes_per_minute' => (int) env('CMS_WRITES_PER_MINUTE', 60),
     'uploads_per_minute' => (int) env('CMS_UPLOADS_PER_MINUTE', 20),
+    'public_reads_per_minute' => (int) env('CMS_PUBLIC_READS_PER_MINUTE', 120),
 ];

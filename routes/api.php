@@ -4,12 +4,29 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\CmsResourceController;
 use App\Http\Controllers\Api\V1\MediaController;
+use App\Http\Controllers\Api\V1\PublishedResourceController;
 use App\Http\Controllers\Api\V1\SnapshotController;
 use App\Http\Controllers\CapabilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', CapabilityController::class);
 Route::get('/__verify', [CapabilityController::class, 'verify']);
+
+Route::middleware('public.origin')->group(function (): void {
+    Route::options('/v1/sites/{site}/published/{type}/{resource}', fn () => response()->noContent())
+        ->where([
+            'site' => '[A-Za-z0-9][A-Za-z0-9_-]{0,99}',
+            'type' => 'contents|collections',
+            'resource' => '[A-Za-z0-9][A-Za-z0-9_-]{0,99}',
+        ]);
+    Route::get('/v1/sites/{site}/published/{type}/{resource}', PublishedResourceController::class)
+        ->middleware('throttle:cms-public-reads')
+        ->where([
+            'site' => '[A-Za-z0-9][A-Za-z0-9_-]{0,99}',
+            'type' => 'contents|collections',
+            'resource' => '[A-Za-z0-9][A-Za-z0-9_-]{0,99}',
+        ]);
+});
 
 Route::middleware('service')->group(function (): void {
     Route::put('/v1/sites/{site}/{type}/{resource}', [CmsResourceController::class, 'update'])
