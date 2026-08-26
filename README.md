@@ -1,22 +1,27 @@
-# Magic HTML Content Service
+# Magic HTML Site Structure Service
 
-Tier 1 singleton-content capability for Magic HTML static sites. It owns site-scoped content drafts and immutable published snapshots. It does not expose collection, form, or media operations.
+The canonical owner of a site's information architecture. It stores one versioned Site AST per site and can generate a new Site AST from a structured interview brief.
 
-## Contract
+It does not own page HTML, content values, wireframes, media, design, or publishing.
+
+## API
+
+All `/api/v1` operations require `Authorization: Bearer <MAGIC_HTML_SERVICE_TOKEN>`.
 
 - `GET /api` — capability document
-- `GET /api/__verify` — runtime readiness
-- `PUT /api/v1/sites/{site}/contents/{resource}` — create or replace a content draft
-- `POST /api/v1/sites/{site}/snapshots` — publish an immutable content snapshot
-- `GET /api/v1/sites/{site}/snapshots/{version}` — retrieve a snapshot
-- `GET /api/v1/sites/{site}/published/contents/{resource}` — public runtime projection
+- `GET /api/__verify` — contract, database, and generator readiness
+- `GET /api/v1/sites/{site}/structure`
+- `PUT /api/v1/sites/{site}/structure`
+- `POST /api/v1/sites/{site}/structure/generate`
+- `DELETE /api/v1/sites/{site}/structure`
 
-Writes and snapshot reads require the service Bearer token. Published content reads are public and CORS-enabled. Every record is scoped by `site`.
+The canonical `structure` contains `site`, ordered `pages`, and `navigation`. The first page is always `home` at `/`; page keys and paths are unique and independent from visual design.
 
-Each draft owns its JSON Schema and is rejected when its value does not satisfy it. `media_refs` are stable references to the independent Media Service; this service never calls an object store.
+## Verification
 
 ```bash
 composer install
-php artisan migrate
 php artisan test --compact
+composer validate --strict
+composer audit --no-dev
 ```

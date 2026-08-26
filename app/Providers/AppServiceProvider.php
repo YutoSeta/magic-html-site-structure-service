@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Contracts\SiteStructureGenerator;
+use App\Services\OpenAiSiteStructureGenerator;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -15,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(SiteStructureGenerator::class, OpenAiSiteStructureGenerator::class);
     }
 
     /**
@@ -24,9 +26,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         JsonResource::withoutWrapping();
-        RateLimiter::for('content-writes', fn (Request $request): Limit => Limit::perMinute((int) config('content.writes_per_minute'))
+        RateLimiter::for('site-structure-writes', fn (Request $request): Limit => Limit::perMinute((int) config('site_structure.writes_per_minute'))
             ->by((string) $request->bearerToken()));
-        RateLimiter::for('content-public-reads', fn (Request $request): Limit => Limit::perMinute((int) config('content.public_reads_per_minute'))
-            ->by(implode('|', [(string) $request->route('site'), (string) $request->ip()])));
+        RateLimiter::for('site-structure-reads', fn (Request $request): Limit => Limit::perMinute((int) config('site_structure.reads_per_minute'))
+            ->by((string) $request->bearerToken()));
     }
 }
