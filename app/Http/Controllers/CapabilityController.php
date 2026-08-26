@@ -22,13 +22,12 @@ final class CapabilityController extends Controller
     {
         $checks = [
             'contract_installed' => is_file(base_path('vendor/yutoseta/magic-html-contracts/openapi/tier1.json')),
-            'database' => Schema::hasTable('cms_resources') && Schema::hasTable('snapshots') && Schema::hasTable('media_assets'),
-            'media_disk' => (string) config('cms.media_disk'),
+            'database' => Schema::hasTable('cms_resources') && Schema::hasTable('snapshots'),
         ];
         $ready = ! in_array(false, $checks, true);
 
         return response()->json([
-            'service' => 'magic-html-cms-service',
+            'service' => 'magic-html-content-service',
             'tier' => 1,
             'status' => $ready ? 'ok' : 'degraded',
             'contract_version' => '1.0',

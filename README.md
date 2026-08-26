@@ -1,45 +1,19 @@
-# Magic HTML CMS Service
+# Magic HTML Content Service
 
-Tier 1 content capability for Magic HTML StaticSite output. It owns site-scoped content, collections, media metadata and immutable published snapshots. Media bytes live in an S3-compatible object store such as Cloudflare R2; content stores stable `media_key` references instead of provider URLs.
+Tier 1 singleton-content capability for Magic HTML static sites. It owns site-scoped content drafts and immutable published snapshots. It does not expose collection, form, or media operations.
 
 ## Contract
 
-The service implements contract `1.0` from `yutoseta/magic-html-contracts`:
-
 - `GET /api` — capability document
-- `GET /api/__verify` — database and object-storage verification
-- `PUT /api/v1/sites/{site}/{contents|collections|media}/{resource}` — create or replace a draft resource
-- `POST /api/v1/sites/{site}/media` — upload a draft media object
-- `GET /api/v1/sites/{site}/media/{media}/file` — authenticated draft preview
-- `POST /api/v1/sites/{site}/snapshots` — publish an immutable snapshot
-- `GET /api/v1/sites/{site}/snapshots/{version}` — retrieve an immutable snapshot
-- `GET /media/{site}/{media}` — public media bytes, available only after publication
+- `GET /api/__verify` — runtime readiness
+- `PUT /api/v1/sites/{site}/contents/{resource}` — create or replace a content draft
+- `POST /api/v1/sites/{site}/snapshots` — publish an immutable content snapshot
+- `GET /api/v1/sites/{site}/snapshots/{version}` — retrieve a snapshot
+- `GET /api/v1/sites/{site}/published/contents/{resource}` — public runtime projection
 
-All `/api/v1` operations require the service bearer token. Public media URLs fail closed until a snapshot containing the media is published. Every resource is scoped by the site identifier, including media lookup and snapshot retrieval.
+Writes and snapshot reads require the service Bearer token. Published content reads are public and CORS-enabled. Every record is scoped by `site`.
 
-## Resource model
-
-`contents` hold singleton content, while `collections` hold repeatable structured data. Each draft carries its own JSON Schema and is rejected if its value does not satisfy that schema. `media_refs` must resolve to media in the same site before publication.
-
-```json
-{
-  "contract_version": "1.0",
-  "name": "Homepage",
-  "schema": {
-    "type": "object",
-    "required": ["title"],
-    "properties": {"title": {"type": "string"}}
-  },
-  "value": {"title": "Magic HTML"},
-  "media_refs": []
-}
-```
-
-## Runtime
-
-Production uses PostgreSQL and an S3-compatible private bucket. Set `MAGIC_HTML_SERVICE_TOKEN`, database variables, `CMS_MEDIA_DISK=s3`, and the usual `AWS_*` variables. For Cloudflare R2, set `AWS_DEFAULT_REGION=auto`, the R2 S3 endpoint in `AWS_ENDPOINT`, and `AWS_USE_PATH_STYLE_ENDPOINT=false`.
-
-Run locally with:
+Each draft owns its JSON Schema and is rejected when its value does not satisfy it. `media_refs` are stable references to the independent Media Service; this service never calls an object store.
 
 ```bash
 composer install

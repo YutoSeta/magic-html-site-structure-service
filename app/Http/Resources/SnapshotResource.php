@@ -21,8 +21,6 @@ final class SnapshotResource extends JsonResource
             'published_at' => $this->published_at->toIso8601String(),
             'digest' => $this->digest,
             'contents' => $this->document['contents'],
-            'collections' => $this->document['collections'],
-            'media' => $this->document['media'],
         ];
     }
 }

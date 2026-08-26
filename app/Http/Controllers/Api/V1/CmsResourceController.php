@@ -16,13 +16,12 @@ final class CmsResourceController extends Controller
     public function update(
         UpsertCmsResourceRequest $request,
         string $site,
-        string $type,
         string $resource,
         UpsertCmsResource $upsert,
     ): JsonResponse {
         try {
             $document = json_decode($request->getContent(), false, 512, JSON_THROW_ON_ERROR);
-            $record = $upsert->execute($site, $type, $resource, $request->validated(), $document->schema);
+            $record = $upsert->execute($site, 'contents', $resource, $request->validated(), $document->schema);
         } catch (InvalidResourceSchemaException $exception) {
             return Problem::response($request, 422, 'invalid_resource_value', $exception->getMessage(), $exception->errors);
         } catch (JsonException) {

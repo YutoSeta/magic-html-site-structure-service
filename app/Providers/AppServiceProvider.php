@@ -24,11 +24,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         JsonResource::withoutWrapping();
-        RateLimiter::for('cms-writes', fn (Request $request): Limit => Limit::perMinute((int) config('cms.writes_per_minute'))
+        RateLimiter::for('content-writes', fn (Request $request): Limit => Limit::perMinute((int) config('content.writes_per_minute'))
             ->by((string) $request->bearerToken()));
-        RateLimiter::for('cms-uploads', fn (Request $request): Limit => Limit::perMinute((int) config('cms.uploads_per_minute'))
-            ->by((string) $request->bearerToken()));
-        RateLimiter::for('cms-public-reads', fn (Request $request): Limit => Limit::perMinute((int) config('cms.public_reads_per_minute'))
+        RateLimiter::for('content-public-reads', fn (Request $request): Limit => Limit::perMinute((int) config('content.public_reads_per_minute'))
             ->by(implode('|', [(string) $request->route('site'), (string) $request->ip()])));
     }
 }

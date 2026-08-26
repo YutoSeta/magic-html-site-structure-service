@@ -14,7 +14,7 @@ final class CmsResourceControllerTest extends TestCase
     {
         parent::setUp();
 
-        config()->set('cms.service_token', 'test-service-token');
+        config()->set('content.service_token', 'test-service-token');
     }
 
     public function test_put_resource_without_bearer_token_returns_401(): void
@@ -110,15 +110,6 @@ final class CmsResourceControllerTest extends TestCase
             )
             ->assertOk()
             ->assertJsonPath('value.free_form.1', 42);
-    }
-
-    public function test_generic_resource_endpoint_cannot_create_media_without_an_object(): void
-    {
-        $this->withToken('test-service-token')
-            ->putJson('/api/v1/sites/site-one/media/fake-object', $this->resource())
-            ->assertNotFound();
-
-        $this->assertDatabaseEmpty('cms_resources');
     }
 
     public function test_json_array_is_not_accepted_as_a_schema_object(): void

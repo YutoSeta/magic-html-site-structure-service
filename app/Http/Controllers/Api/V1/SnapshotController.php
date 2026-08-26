@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\PublishSnapshot;
-use App\Exceptions\MissingMediaReferenceException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SnapshotResource;
 use App\Models\Snapshot;
@@ -16,13 +15,7 @@ final class SnapshotController extends Controller
 {
     public function store(Request $request, string $site, PublishSnapshot $publish): JsonResponse
     {
-        try {
-            $snapshot = $publish->execute($site);
-        } catch (MissingMediaReferenceException $exception) {
-            return Problem::response($request, 422, 'missing_media_reference', $exception->getMessage(), [
-                'media_refs' => $exception->mediaRefs,
-            ]);
-        }
+        $snapshot = $publish->execute($site);
 
         return (new SnapshotResource($snapshot))->response()->setStatusCode(Response::HTTP_CREATED);
     }

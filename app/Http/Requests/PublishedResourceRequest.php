@@ -11,10 +11,6 @@ final class PublishedResourceRequest extends ContractRequest
      */
     public function rules(): array
     {
-        return [
-            'page' => ['sometimes', 'integer', 'min:1'],
-            'per_page' => ['sometimes', 'integer', 'between:1,100'],
-            'q' => ['sometimes', 'nullable', 'string', 'max:200'],
-        ];
+        return [];
     }
 }
