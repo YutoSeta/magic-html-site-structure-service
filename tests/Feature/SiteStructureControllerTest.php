@@ -51,10 +51,14 @@ final class SiteStructureControllerTest extends TestCase
 
     public function test_generation_uses_the_generator_boundary_and_persists_result(): void
     {
-        $this->app->instance(SiteStructureGenerator::class, new class implements SiteStructureGenerator
+        $generator = new class implements SiteStructureGenerator
         {
+            public int $calls = 0;
+
             public function generate(array $brief, string $locale, int $pageLimit): array
             {
+                $this->calls++;
+
                 return [
                     'version' => 1,
                     'site' => ['name' => $brief['organization'], 'description' => 'Generated'],
@@ -62,9 +66,10 @@ final class SiteStructureControllerTest extends TestCase
                     'navigation' => [['label' => 'Home', 'path' => '/']],
                 ];
             }
-        });
+        };
+        $this->app->instance(SiteStructureGenerator::class, $generator);
 
-        $this->withToken('test-token')->postJson('/api/v1/sites/site-one/structure/generate', [
+        $payload = [
             'contract_version' => '1.0',
             'brief' => [
                 'organization' => 'Web工房',
@@ -76,11 +81,15 @@ final class SiteStructureControllerTest extends TestCase
             ],
             'locale' => 'ja',
             'page_limit' => 5,
-        ])->assertOk()
+        ];
+        $this->withToken('test-token')->postJson('/api/v1/sites/site-one/structure/generate', $payload)->assertOk()
             ->assertJsonPath('source', 'generated')
             ->assertJsonPath('structure.site.name', 'Web工房');
+        $this->withToken('test-token')->postJson('/api/v1/sites/site-one/structure/generate', $payload)->assertOk()
+            ->assertJsonPath('version', 1);
 
         $this->assertDatabaseHas('site_structures', ['site_id' => 'site-one', 'source' => 'generated']);
+        $this->assertSame(1, $generator->calls);
     }
 
     /** @return array<string,mixed> */

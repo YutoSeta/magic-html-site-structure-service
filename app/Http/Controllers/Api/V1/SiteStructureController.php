@@ -48,6 +48,16 @@ final class SiteStructureController extends Controller
         string $site,
         SiteStructureGenerator $generator,
     ): JsonResponse {
+        $digest = hash('sha256', CanonicalJson::encode($request->validated('brief')));
+        $existing = SiteStructure::query()
+            ->where('site_id', $site)
+            ->where('source', 'generated')
+            ->where('brief_digest', $digest)
+            ->first();
+        if ($existing !== null) {
+            return (new SiteStructureResource($existing))->response()->setStatusCode(200);
+        }
+
         try {
             $structure = $generator->generate(
                 $request->validated('brief'),
@@ -59,8 +69,6 @@ final class SiteStructureController extends Controller
         } catch (RuntimeException $exception) {
             return Problem::response($request, 502, 'site_structure_provider_failed', $exception->getMessage());
         }
-
-        $digest = hash('sha256', CanonicalJson::encode($request->validated('brief')));
 
         return (new SiteStructureResource($this->persist($site, $structure, 'generated', $digest)))
             ->response()->setStatusCode(200);
