@@ -55,9 +55,13 @@ final class SiteStructureControllerTest extends TestCase
         {
             public int $calls = 0;
 
-            public function generate(array $brief, string $locale, int $pageLimit): array
+            /** @var list<string> */
+            public array $profiles = [];
+
+            public function generate(array $brief, string $locale, int $pageLimit, string $executionProfile = 'fast'): array
             {
                 $this->calls++;
+                $this->profiles[] = $executionProfile;
 
                 return [
                     'version' => 1,
@@ -90,6 +94,26 @@ final class SiteStructureControllerTest extends TestCase
 
         $this->assertDatabaseHas('site_structures', ['site_id' => 'site-one', 'source' => 'generated']);
         $this->assertSame(1, $generator->calls);
+        $this->assertSame(['fast'], $generator->profiles);
+
+        $payload['execution_profile'] = 'quality';
+        $this->withToken('test-token')->postJson('/api/v1/sites/site-one/structure/generate', $payload)->assertOk()
+            ->assertJsonPath('version', 2);
+        $this->assertSame(['fast', 'quality'], $generator->profiles);
+    }
+
+    public function test_generation_rejects_unknown_execution_profile(): void
+    {
+        $this->withToken('test-token')->postJson('/api/v1/sites/site-one/structure/generate', [
+            'contract_version' => '1.0',
+            'brief' => [
+                'organization' => 'Web工房',
+                'goals' => '問い合わせ増加',
+                'audience' => '中小企業',
+                'tone' => '誠実',
+            ],
+            'execution_profile' => 'custom-model',
+        ])->assertUnprocessable();
     }
 
     /** @return array<string,mixed> */

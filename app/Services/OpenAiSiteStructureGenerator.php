@@ -4,16 +4,21 @@ namespace App\Services;
 
 use App\Exceptions\InvalidSiteStructureException;
 use App\Services\Contracts\SiteStructureGenerator;
+use App\Support\ExecutionProfile;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 final class OpenAiSiteStructureGenerator implements SiteStructureGenerator
 {
-    public function __construct(private readonly SiteStructureValidator $validator) {}
+    public function __construct(
+        private readonly SiteStructureValidator $validator,
+        private readonly ExecutionProfile $executionProfiles,
+    ) {}
 
     /** @param array<string,mixed> $brief @return array<string,mixed> */
-    public function generate(array $brief, string $locale, int $pageLimit): array
+    public function generate(array $brief, string $locale, int $pageLimit, string $executionProfile = 'fast'): array
     {
+        $profile = $this->executionProfiles->resolve($executionProfile);
         $feedback = null;
         for ($attempt = 0; $attempt < 2; $attempt++) {
             $response = Http::withToken((string) config('services.openai.key'))
@@ -21,7 +26,7 @@ final class OpenAiSiteStructureGenerator implements SiteStructureGenerator
                 ->timeout((int) config('services.openai.timeout', 300))
                 ->retry([1000, 3000, 7000], throw: false)
                 ->post((string) config('services.openai.url'), [
-                    'model' => (string) config('services.openai.model'),
+                    'model' => $profile['model'],
                     'instructions' => $this->instructions(),
                     'input' => json_encode([
                         'brief' => $brief,
@@ -29,7 +34,7 @@ final class OpenAiSiteStructureGenerator implements SiteStructureGenerator
                         'page_limit' => $pageLimit,
                         'validation_feedback' => $feedback,
                     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                    'reasoning' => ['effort' => (string) config('services.openai.reasoning_effort', 'medium')],
+                    'reasoning' => ['effort' => $profile['reasoning_effort']],
                     'text' => ['format' => [
                         'type' => 'json_schema',
                         'name' => 'site_structure',
@@ -38,7 +43,7 @@ final class OpenAiSiteStructureGenerator implements SiteStructureGenerator
                     ]],
                     'max_output_tokens' => 12000,
                     'store' => false,
-                    'metadata' => ['stage' => 'site_structure'],
+                    'metadata' => ['stage' => 'site_structure', 'execution_profile' => $profile['id']],
                 ]);
 
             if (! $response->successful()) {

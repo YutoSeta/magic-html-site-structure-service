@@ -19,6 +19,7 @@ final class GenerateSiteStructureRequest extends ContractRequest
             'brief.materials.*' => ['string', 'max:8000'],
             'locale' => ['sometimes', 'string', 'min:2', 'max:20'],
             'page_limit' => ['sometimes', 'integer', 'between:1,20'],
+            'execution_profile' => ['sometimes', 'string', 'in:fast,balanced,quality'],
         ];
     }
 
@@ -27,6 +28,7 @@ final class GenerateSiteStructureRequest extends ContractRequest
         $this->merge([
             'locale' => $this->input('locale', 'ja'),
             'page_limit' => $this->input('page_limit', 5),
+            'execution_profile' => $this->input('execution_profile', 'fast'),
         ]);
     }
 }

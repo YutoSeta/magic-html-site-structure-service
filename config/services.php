@@ -7,6 +7,21 @@ return [
         'url' => env('OPENAI_RESPONSES_URL', 'https://api.openai.com/v1/responses'),
         'model' => env('OPENAI_MODEL', 'gpt-5.6-sol'),
         'reasoning_effort' => env('OPENAI_REASONING_EFFORT', 'medium'),
+        'default_execution_profile' => env('OPENAI_EXECUTION_PROFILE', 'fast'),
+        'execution_profiles' => [
+            'fast' => [
+                'model' => env('OPENAI_FAST_MODEL', 'gpt-5.6-luna'),
+                'reasoning_effort' => env('OPENAI_FAST_REASONING_EFFORT', 'low'),
+            ],
+            'balanced' => [
+                'model' => env('OPENAI_BALANCED_MODEL', 'gpt-5.6-terra'),
+                'reasoning_effort' => env('OPENAI_BALANCED_REASONING_EFFORT', 'medium'),
+            ],
+            'quality' => [
+                'model' => env('OPENAI_QUALITY_MODEL', 'gpt-5.6-sol'),
+                'reasoning_effort' => env('OPENAI_QUALITY_REASONING_EFFORT', 'high'),
+            ],
+        ],
         'timeout' => (int) env('OPENAI_TIMEOUT', 300),
     ],
 

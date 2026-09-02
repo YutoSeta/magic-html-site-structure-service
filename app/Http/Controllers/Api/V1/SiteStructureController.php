@@ -48,7 +48,12 @@ final class SiteStructureController extends Controller
         string $site,
         SiteStructureGenerator $generator,
     ): JsonResponse {
-        $digest = hash('sha256', CanonicalJson::encode($request->validated('brief')));
+        $digest = hash('sha256', CanonicalJson::encode([
+            'brief' => $request->validated('brief'),
+            'locale' => $request->validated('locale'),
+            'page_limit' => $request->integer('page_limit'),
+            'execution_profile' => $request->validated('execution_profile'),
+        ]));
         $existing = SiteStructure::query()
             ->where('site_id', $site)
             ->where('source', 'generated')
@@ -63,6 +68,7 @@ final class SiteStructureController extends Controller
                 $request->validated('brief'),
                 $request->validated('locale'),
                 $request->integer('page_limit'),
+                $request->validated('execution_profile'),
             );
         } catch (InvalidSiteStructureException $exception) {
             return Problem::response($request, 422, 'invalid_site_structure', $exception->getMessage());
